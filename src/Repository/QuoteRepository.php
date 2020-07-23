@@ -1,5 +1,10 @@
 <?php
 
+namespace Repository;
+
+use Entity\Quote;
+use Helper\SingletonTrait;
+
 class QuoteRepository implements Repository
 {
     use SingletonTrait;
@@ -19,7 +24,7 @@ class QuoteRepository implements Repository
             $id,
             $generator->numberBetween(1, 10),
             $generator->numberBetween(1, 200),
-            new DateTime()
+            new \DateTime()
         );
     }
 }

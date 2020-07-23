@@ -1,5 +1,7 @@
 <?php
 
+namespace Entity;
+
 class Destination
 {
     public $id;

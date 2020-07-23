@@ -1,19 +1,16 @@
 <?php
 
-require_once __DIR__ . '/../src/Entity/Destination.php';
-require_once __DIR__ . '/../src/Entity/Quote.php';
-require_once __DIR__ . '/../src/Entity/Site.php';
-require_once __DIR__ . '/../src/Entity/Template.php';
-require_once __DIR__ . '/../src/Entity/User.php';
-require_once __DIR__ . '/../src/Helper/SingletonTrait.php';
-require_once __DIR__ . '/../src/Context/ApplicationContext.php';
-require_once __DIR__ . '/../src/Repository/Repository.php';
-require_once __DIR__ . '/../src/Repository/DestinationRepository.php';
-require_once __DIR__ . '/../src/Repository/QuoteRepository.php';
-require_once __DIR__ . '/../src/Repository/SiteRepository.php';
-require_once __DIR__ . '/../src/TemplateManager.php';
+namespace test;
 
-class TemplateManagerTest extends PHPUnit_Framework_TestCase
+use Context\ApplicationContext;
+use Entity\Quote;
+use Entity\Site;
+use Entity\Template;
+use Entity\User;
+use Repository\DestinationRepository;
+
+
+class TemplateManagerTest extends \PHPUnit_Framework_TestCase
 {
     /**
      * Init the mocks
@@ -44,30 +41,32 @@ class TemplateManagerTest extends PHPUnit_Framework_TestCase
 
         $template = new Template(
             1,
-            'Votre livraison à [quote:destination_name]',
+            'Votre livraison à <p>{{destination.countryName}}</p>',
             "
-Bonjour [user:first_name],
+Bonjour {{user.firstname|capitalize}},
 
-Merci de nous avoir contacté pour votre livraison à [quote:destination_name].
+Merci de nous avoir contacté pour votre livraison à <p>{{destination.countryName}}</p>.
 
 Bien cordialement,
 
 L'équipe Convelio.com
 ");
-        $templateManager = new TemplateManager();
+        $templateManager = new \TemplateManager();
 
         $message = $templateManager->getTemplateComputed(
             $template,
             [
-                'quote' => $quote
+                'quote' => $quote,
+                'destination' => DestinationRepository::getInstance()->getById($destinationId),
+                'user' => $expectedUser,
             ]
         );
 
-        $this->assertEquals('Votre livraison à ' . $expectedDestination->countryName, $message->subject);
+        $this->assertEquals('Votre livraison à <p>' . $expectedDestination->countryName .'</p>', $message->subject);
         $this->assertEquals("
 Bonjour " . $expectedUser->firstname . ",
 
-Merci de nous avoir contacté pour votre livraison à " . $expectedDestination->countryName . ".
+Merci de nous avoir contacté pour votre livraison à <p>" . $expectedDestination->countryName . "</p>.
 
 Bien cordialement,
 

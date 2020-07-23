@@ -1,40 +1,43 @@
 <?php
 
-require_once __DIR__ . '/../vendor/autoload.php';
+namespace Exemple;
 
-require_once __DIR__ . '/../src/Entity/Destination.php';
-require_once __DIR__ . '/../src/Entity/Quote.php';
-require_once __DIR__ . '/../src/Entity/Site.php';
-require_once __DIR__ . '/../src/Entity/Template.php';
-require_once __DIR__ . '/../src/Entity/User.php';
-require_once __DIR__ . '/../src/Helper/SingletonTrait.php';
-require_once __DIR__ . '/../src/Context/ApplicationContext.php';
-require_once __DIR__ . '/../src/Repository/Repository.php';
-require_once __DIR__ . '/../src/Repository/DestinationRepository.php';
-require_once __DIR__ . '/../src/Repository/QuoteRepository.php';
-require_once __DIR__ . '/../src/Repository/SiteRepository.php';
-require_once __DIR__ . '/../src/TemplateManager.php';
+use Entity\Quote;
+use Entity\Site;
+use Entity\Template;
+use Entity\User;
+use Repository\DestinationRepository;
+use TemplateManager;
+use Repository\SiteRepository;
+
+require_once __DIR__ . '/../vendor/autoload.php';
 
 $faker = \Faker\Factory::create();
 
 $template = new Template(
     1,
-    'Votre livraison à [quote:destination_name]',
+    'Votre livraison à <p>{{destination.countryName}}</p>',
     "
-Bonjour [user:first_name],
+Bonjour {{user.firstname|capitalize}},
 
-Merci de nous avoir contacté pour votre livraison à [quote:destination_name].
+Merci de nous avoir contacté pour votre livraison à <p>{{destination.countryName}}</p>
 
 Bien cordialement,
 
 L'équipe Convelio.com
 ");
+
 $templateManager = new TemplateManager();
+
+$quote = new Quote($faker->randomNumber(), $faker->randomNumber(), $faker->randomNumber(), $faker->date());
 
 $message = $templateManager->getTemplateComputed(
     $template,
     [
-        'quote' => new Quote($faker->randomNumber(), $faker->randomNumber(), $faker->randomNumber(), $faker->date())
+        'quote' => $quote,
+        'destination' => DestinationRepository::getInstance()->getById($quote->destinationId),
+        'site' => new Site($faker->randomNumber(), $faker->url),
+        'user' => new User($faker->randomNumber(), $faker->firstName, $faker->lastName, $faker->email),
     ]
 );
 
